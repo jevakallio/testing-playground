@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   CheckCircleFillIcon,
+  XCircleFillIcon,
   EyeIcon,
   EyeClosedIcon,
   ZapIcon,
@@ -28,6 +29,22 @@ const EventIcon = ({ type, result }) => {
     }
   } else {
     return <ZapIcon size={size} />;
+  }
+};
+
+const StatusIcon = ({ result }) => {
+  if (result.status === 'passed') {
+    return (
+      <span className="mr-2 text-green-400">
+        <CheckCircleFillIcon />
+      </span>
+    );
+  } else {
+    return (
+      <span className="mr-2 text-red-400">
+        <XCircleFillIcon />
+      </span>
+    );
   }
 };
 
@@ -63,9 +80,7 @@ function TestCase({
           isSelected ? 'font-bold text-blue-600' : 'text-gray-600'
         }`}
       >
-        <span className="mr-2 text-green-400">
-          <CheckCircleFillIcon />
-        </span>
+        <StatusIcon result={testCase.result} />
         {testCase.title}
       </h4>
       <ul className="text-xs full-width">
