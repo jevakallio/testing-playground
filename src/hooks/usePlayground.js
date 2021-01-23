@@ -7,7 +7,9 @@ import parser from '../parser';
 import { initialValues as defaultValues } from '../constants';
 import { withLogging } from '../lib/logger';
 import postMessage from '../lib/postMessage';
+import beautify from '../lib/beautify';
 import gist from '../api/gist';
+import jest from '../api/jest';
 import url from '../lib/state/url';
 
 let history;
@@ -51,6 +53,20 @@ function reducer(state, action, exec) {
       return { ...state, sandbox: action.sandbox };
     }
 
+    case 'SET_TEST_RUN': {
+      return {
+        ...state,
+        testRun: action.data,
+      };
+    }
+
+    case 'SET_SELECTED_EVENT': {
+      return {
+        ...state,
+        selectedEvent: action.payload,
+      };
+    }
+
     case 'SET_MARKUP': {
       if (action.origin !== 'EDITOR') {
         exec({ type: 'UPDATE_EDITOR', editor: 'markup' });
@@ -61,7 +77,7 @@ function reducer(state, action, exec) {
       return {
         ...state,
         dirty: true,
-        markup: action.markup,
+        markup: beautify.html(action.markup),
       };
     }
 
@@ -222,14 +238,25 @@ const effectMap = {
   },
 
   LOAD: async (state, effect, dispatch) => {
-    const { settings, markup, query } = await gist.fetch({
-      id: state.gistId,
-      version: state.gistVersion,
-    });
-
-    dispatch({ type: 'SET_SETTINGS', ...settings });
-    dispatch({ type: 'SET_MARKUP', markup });
-    dispatch({ type: 'SET_QUERY', query });
+    const data = await jest.fetch({ file: 'matrix.json' });
+    console.log(data);
+    if (data) {
+      const firstFile = data[0];
+      const firstCase = firstFile.testCases[0];
+      const firstEvent = firstCase.events[0];
+      dispatch({
+        type: 'SET_TEST_RUN',
+        data,
+      });
+      dispatch({
+        type: 'SET_MARKUP',
+        markup: firstEvent.event.html,
+      });
+      dispatch({
+        type: 'SET_QUERY',
+        query: `screen.${firstEvent.event.method}("${firstEvent.event.args[0]}")`,
+      });
+    }
   },
 
   SAVE: async (state, effect, dispatch) => {
@@ -271,6 +298,12 @@ function getInitialState(props) {
   const state = {
     ...props,
     status: 'loading',
+    testRun: [],
+    selectedEvent: {
+      fileIndex: 0,
+      caseIndex: 0,
+      eventIndex: 0,
+    },
     dirty: false,
     settings: Object.assign(
       {
@@ -284,26 +317,14 @@ function getInitialState(props) {
   parser.configure(state.settings);
 
   return (exec) => {
-    if (props.gistId) {
-      exec({ type: 'LOAD' });
-      return state;
-    }
-    // try get state from url (legacy fallback)
-    else {
-      const params = url.load();
-      if (params) {
-        return {
-          ...state,
-          ...params,
-          dirty: true,
-        };
-      }
-    }
+    console.log('exec');
+    exec({ type: 'LOAD' });
+    return state;
 
-    return {
-      ...state,
-      ...defaultValues,
-    };
+    // return {
+    //   ...state,
+    //   ...defaultValues,
+    // };
   };
 }
 
