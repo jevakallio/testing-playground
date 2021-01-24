@@ -1,21 +1,17 @@
-import mockData from '../matrix.json';
-
 const headers = {
   'Content-Type': 'application/json',
 };
 
 const jest = {
-  async fetch({ file }) {
-    // const url = 'http://localhost:8080/' + file;
-    // const response = await fetch(url, {
-    //   method: 'GET',
-    //   headers,
-    // });
+  async fetch({ id }) {
+    const url = 'http://localhost:5000/api/' + id;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
 
-    // const data = await response.json();
-    // return data;
-
-    return Promise.resolve(mockData);
+    const data = await response.json();
+    return data;
   },
 };
 

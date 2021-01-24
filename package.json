@@ -13,6 +13,7 @@
     "url": "https://github.com/testing-library/testing-playground/issues"
   },
   "scripts": {
+    "ship-matrix": "yarn build:client && cp -r dist/client ../jest-matrix/lib/playground",
     "dev": "npx --node-arg=--inspect netlify dev",
     "start": "run-s start:client",
     "start:client": "cross-env NODE_ENV=development node ./scripts/build-client",

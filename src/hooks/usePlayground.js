@@ -169,11 +169,12 @@ const populateSandbox = (state, effect, dispatch) => {
   dispatch({ type: 'SET_STATUS', status: 'evaluating' });
 
   // @todo lol fixme
-  const e = state.selectedEvent;
   let overrideSelector = null;
-  if (e) {
+
+  if (state.testRun && state.selectedEvent) {
+    const { fileIndex, caseIndex, eventIndex } = state.selectedEvent;
     const event =
-      state.testRun[e.fileIndex].testCases[e.caseIndex].events[e.eventIndex];
+      state.testRun[fileIndex].testCases[caseIndex].events[eventIndex];
     if (event && event.event.type === 'UserEvent') {
       overrideSelector = event.event.selector;
     }
@@ -250,8 +251,9 @@ const effectMap = {
   },
 
   LOAD: async (state, effect, dispatch) => {
-    const data = await jest.fetch({ file: 'matrix.json' });
-    console.log(data);
+    const data = await jest.fetch({ id: 'latest' });
+    console.log('fetched', data);
+
     if (data) {
       // @todo find first failing case instead
       const firstFile = data[0];
