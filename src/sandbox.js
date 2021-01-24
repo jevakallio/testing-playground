@@ -166,11 +166,23 @@ function onSelectNode(node, { origin }) {
   }
 }
 
-function updateSandbox(rootNode, markup, query) {
+function updateSandbox(rootNode, markup, query, overrideSelector) {
   postMessage({ type: 'SANDBOX_BUSY' });
   setInnerHTML(rootNode, markup);
 
-  const result = runQuery(rootNode, query);
+  // we'll cheat here -- for user events, we don't actually have access
+  // to the original query that was passed, so we use a "reconstructed"
+  // selector that finds the right element
+  const effectiveQuery = overrideSelector
+    ? `document.querySelectorAll('${overrideSelector}')`
+    : query;
+
+  const result = runQuery(rootNode, effectiveQuery);
+
+  if (overrideSelector) {
+    result.readOnly = true;
+  }
+
   postMessage({ type: 'SANDBOX_READY', result });
 }
 
@@ -183,6 +195,7 @@ function onMessage({ source, data }) {
     case 'UPDATE_SANDBOX': {
       state.query = data.query;
       state.markup = data.markup;
+      state.overrideSelector = data.overrideSelector || null;
       break;
     }
 
@@ -193,7 +206,12 @@ function onMessage({ source, data }) {
     }
   }
 
-  updateSandbox(state.rootNode, state.markup, state.query);
+  updateSandbox(
+    state.rootNode,
+    state.markup,
+    state.query,
+    state.overrideSelector,
+  );
 }
 
 window.addEventListener('message', onMessage, false);

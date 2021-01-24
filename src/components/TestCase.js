@@ -7,15 +7,15 @@ import {
   ZapIcon,
 } from '@primer/octicons-react';
 
-const EventDisplayText = ({ event }) => {
-  if (event.type === 'query') {
-    return `${event.method}("${event.args[0]}")`;
+// @todo lol fixme
+const getEventDisplayText = (event, short = false) => {
+  if (event.type === 'Query') {
+    return `${short ? '' : 'screen.'}${event.method}("${event.args[0]}")`;
   } else {
-    const [node, ...args] = event.args;
-    const el = node.length > 25 ? `${node.substring(0, 25)}...` : node;
+    const [, ...args] = event.args;
+    const el = event.selector; //short && node.length > 25 ? `${node.substring(0, 25)}...` : node;
     const rest = [null, ...args.map((a) => `"${a}"`)].join(', ');
-
-    return `${event.method}(${el}${rest})`;
+    return `${short ? '' : 'userEvent.'}${event.method}(${el}${rest})`;
   }
 };
 
@@ -23,12 +23,12 @@ const EventIcon = ({ type, result }) => {
   const size = 12;
   if (type === 'Query') {
     if (result) {
-      return <EyeIcon size={size} />;
+      return <EyeIcon aria-label="Found" size={size} />;
     } else {
-      return <EyeClosedIcon size={size} />;
+      return <EyeClosedIcon aria-label="Not Found" size={size} />;
     }
   } else {
-    return <ZapIcon size={size} />;
+    return <ZapIcon aria-label="User Event" size={size} />;
   }
 };
 
@@ -68,7 +68,7 @@ function TestCase({
     dispatch({ type: 'SET_MARKUP', markup: event.html });
     dispatch({
       type: 'SET_QUERY',
-      query: `screen.${event.method}("${event.args[0]}")`,
+      query: getEventDisplayText(event),
     });
   };
 
@@ -104,7 +104,7 @@ function TestCase({
                 className={`cursor-pointer p-2 full-width`}
                 onClick={() => selectEvent(event.event, i)}
               >
-                <EventDisplayText event={event.event} />
+                {getEventDisplayText(event.event, true)}
               </a>
             </div>
           </li>

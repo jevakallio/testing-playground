@@ -168,10 +168,22 @@ function reducer(state, action, exec) {
 const populateSandbox = (state, effect, dispatch) => {
   dispatch({ type: 'SET_STATUS', status: 'evaluating' });
 
+  // @todo lol fixme
+  const e = state.selectedEvent;
+  let overrideSelector = null;
+  if (e) {
+    const event =
+      state.testRun[e.fileIndex].testCases[e.caseIndex].events[e.eventIndex];
+    if (event && event.event.type === 'UserEvent') {
+      overrideSelector = event.event.selector;
+    }
+  }
+
   postMessage(state.sandbox, {
     type: 'UPDATE_SANDBOX',
     markup: state.markup,
     query: state.settings.autoRun || effect.immediate ? state.query : '',
+    overrideSelector,
   });
 };
 
@@ -241,9 +253,11 @@ const effectMap = {
     const data = await jest.fetch({ file: 'matrix.json' });
     console.log(data);
     if (data) {
+      // @todo find first failing case instead
       const firstFile = data[0];
       const firstCase = firstFile.testCases[0];
       const firstEvent = firstCase.events[0];
+
       dispatch({
         type: 'SET_TEST_RUN',
         data,
@@ -252,6 +266,8 @@ const effectMap = {
         type: 'SET_MARKUP',
         markup: firstEvent.event.html,
       });
+
+      // @todo handle if if first event is a user event
       dispatch({
         type: 'SET_QUERY',
         query: `screen.${firstEvent.event.method}("${firstEvent.event.args[0]}")`,
@@ -296,9 +312,6 @@ function getInitialState(props) {
     : {};
 
   const state = {
-    ...props,
-    status: 'loading',
-    testRun: [],
     selectedEvent: {
       fileIndex: 0,
       caseIndex: 0,

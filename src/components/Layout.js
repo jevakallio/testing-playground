@@ -30,7 +30,7 @@ function Layout({
       </div> */}
       <div className="flex flex-row h-screen w-full">
         {testRun && (
-          <nav className="px-4 py-2 mt-2 w-1/4 h-screen space-y-2">
+          <nav className="px-4 mt-2 w-1/4 h-screen space-y-2">
             <TestRunBrowser
               testRun={testRun}
               selectedEvent={selectedEvent}

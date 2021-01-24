@@ -3,7 +3,7 @@ import TestFile from './TestFile';
 
 function TestRunBrowser({ testRun = [], selectedEvent, dispatch }) {
   return (
-    <div className="h-auto w-full flex flex-grow flex-col">
+    <div className="h-screen w-full py-2 flex flex-grow flex-col overflow-y-auto">
       <div className="space-y-4">
         {testRun.map((file, i) => (
           <TestFile
